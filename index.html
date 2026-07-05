@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visionary AI - Prompt Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white font-sans antialiased p-6">
+
+    <div class="max-w-6xl mx-auto space-y-8">
+        <header class="text-center space-y-2">
+            <h1 class="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">Visionary AI Prompt Builder</h1>
+            <p class="text-gray-400">Merakit Mainan Epik: Otomatisasi Prompt Video AI Anda</p>
+        </header>
+
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="border-2 border-dashed border-gray-600 rounded-xl p-8 text-center hover:border-blue-500 transition cursor-pointer flex flex-col items-center justify-center bg-gray-800">
+                <span class="text-4xl mb-3">📤</span>
+                <p class="text-lg font-semibold">Tarik & Lepas Video Referensi</p>
+                <button class="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium">Browse File</button>
+            </div>
+
+            <div class="bg-gray-800 rounded-xl p-8 flex flex-col justify-center border border-gray-700">
+                <h3 class="text-lg font-semibold mb-4">🔗 Import URL YouTube</h3>
+                <div class="flex space-x-2">
+                    <input type="text" id="youtubeUrl" placeholder="https://youtube.com/..." class="flex-1 bg-gray-900 text-white border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500">
+                    <button onclick="generateStoryboard(this)" class="px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium transition whitespace-nowrap">Tarik Video</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <h3 class="text-lg font-semibold mb-4">Pilih Gaya Visual</h3>
+            <select id="styleSelector" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 text-white">
+                <option value="Futuistik">🚀 Futuristik (Cyberpunk, Neon)</option>
+                <option value="Ghibli">🍃 Anime Studio Ghibli</option>
+                <option value="Klasik">🎨 Lukisan Klasik (Renaissance)</option>
+                <option value="Dokumenter" selected>🎥 Dokumenter (Realistis)</option>
+            </select>
+        </section>
+
+        <section id="storyboard-section" class="hidden space-y-6">
+            <h2 class="text-2xl font-bold text-blue-400 border-b border-gray-700 pb-2">Smart Clipper & Prompt Result</h2>
+            <div id="resultsContainer" class="space-y-6">
+                </div>
+        </section>
+    </div>
+
+    <script>
+        async function generateStoryboard(btn) {
+            btn.innerText = "Memproses...";
+            btn.disabled = true;
+            
+            const youtubeUrl = document.getElementById('youtubeUrl').value;
+            const style = document.getElementById('styleSelector').value;
+            
+            try {
+                const formData = new FormData();
+                formData.append("youtube_url", youtubeUrl);
+                formData.append("style_preference", style); 
+
+                // ==========================================
+                // GANTI URL DI BAWAH DENGAN URL VERCEL ANDA!
+                // Pastikan ujungnya menggunakan /api/process-video
+                // ==========================================
+                const backendURL = "https://backend-ai-api.vercel.app/"; 
+
+                const response = await fetch(backendURL, {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error("Gagal mengambil data dari server");
+
+                const data = await response.json();
+                
+                // Menampilkan hasil ke layar
+                const container = document.getElementById('resultsContainer');
+                container.innerHTML = ""; // Bersihkan hasil sebelumnya
+
+                data.forEach(segment => {
+                    const html = `
+                    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 flex flex-col md:flex-row gap-6">
+                        <div class="md:w-1/4">
+                            <div class="w-full h-32 bg-gray-700 rounded-lg flex items-center justify-center mb-2">
+                                <span class="text-gray-500 text-sm">Preview Clip</span>
+                            </div>
+                            <span class="bg-gray-900 text-blue-400 px-3 py-1 rounded-full text-xs font-bold">${segment.timecode}</span>
+                        </div>
+                        <div class="md:w-3/4 flex flex-col">
+                            <label class="text-sm text-gray-400 mb-2 font-semibold">Generated Prompt:</label>
+                            <textarea class="w-full h-full min-h-[120px] bg-gray-900 text-gray-200 border border-gray-600 rounded-lg p-4 text-sm focus:outline-none focus:border-blue-500 resize-none" readonly>${segment.prompt}</textarea>
+                        </div>
+                    </div>`;
+                    container.innerHTML += html;
+                });
+                
+                document.getElementById('storyboard-section').classList.remove('hidden');
+                alert("Sukses Generate Prompt!");
+                
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Gagal terhubung. Pastikan URL Vercel di kode index.html sudah Anda ubah dengan URL milik Anda sendiri.");
+            } finally {
+                btn.innerText = "Tarik Video";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
